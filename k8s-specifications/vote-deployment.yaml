@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: vote
   labels:
     app: vote
-  name: vote
 spec:
   replicas: 1
   selector:
@@ -15,8 +15,26 @@ spec:
         app: vote
     spec:
       containers:
-      - image: dockersamples/examplevotingapp_vote:latest
-        name: vote
+      - name: vote
+        image: $(containerRegistry)/$(imageRepository):$(tag)  # Reference the image built by the pipeline
         ports:
         - containerPort: 80
-          name: vote
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /healthz  # Update if your app provides a different health check path
+            port: 80
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /readiness  # Update if your app provides a different readiness path
+            port: 80
+          initialDelaySeconds: 3
+          periodSeconds: 5
